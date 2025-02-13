@@ -1,9 +1,12 @@
-﻿from PyQt6 import QtWidgets, QtCore, QtGui
+﻿from turtle import width
+import PyQt6
+from PyQt6 import QtWidgets, QtCore, QtGui
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QApplication,
     QLabel,
     QSlider,
+    QToolBar,
     QToolButton,
     QFileDialog,
     QStatusBar
@@ -20,17 +23,19 @@ from QFlowLayout import QFlowLayout
 from PIL import Image, ImageEnhance, ImageFilter
 import QCurveWidget
 
+
 def free_gpu_cache():
     import torch
     from GPUtil import showUtilization as gpu_usage
 
     print("Initial GPU Usage")
-    gpu_usage()                             
+    gpu_usage()
 
     torch.cuda.empty_cache()
 
     print("GPU Usage after emptying the cache")
     gpu_usage()
+
 
 def importLibraries():
     import torch
@@ -43,8 +48,8 @@ def importLibraries():
     print("numpy version", np.__version__)
     print("PIl version", PIL.__version__)
 
-class Gui(QtWidgets.QMainWindow):
 
+class Gui(QtWidgets.QMainWindow):
     sliderChangeSignal = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
@@ -65,17 +70,21 @@ class Gui(QtWidgets.QMainWindow):
         r_histogram = []
         g_histogram = []
         b_histogram = []
-        
+
         # ITU-R 601-2 luma transform:
         luma_histogram = []
 
         # Create histogram plot
         self.ImageHistogramPlot = pg.plot()
         x = list(range(len(r_histogram)))
-        self.ImageHistogramGraphRed = pg.PlotCurveItem(x = x, y = r_histogram, fillLevel=2, width = 1.0, brush=(255,0,0,80))
-        self.ImageHistogramGraphGreen = pg.PlotCurveItem(x = x, y = g_histogram, fillLevel=2, width = 1.0, brush=(0,255,0,80))
-        self.ImageHistogramGraphBlue = pg.PlotCurveItem(x = x, y = b_histogram, fillLevel=2, width = 1.0, brush=(0,0,255,80))
-        self.ImageHistogramGraphLuma = pg.PlotCurveItem(x = x, y = luma_histogram, fillLevel=2, width = 1.0, brush=(255,255,255,80))
+        self.ImageHistogramGraphRed = pg.PlotCurveItem(x=x, y=r_histogram, fillLevel=2, width=1.0,
+                                                       brush=(255, 0, 0, 80))
+        self.ImageHistogramGraphGreen = pg.PlotCurveItem(x=x, y=g_histogram, fillLevel=2, width=1.0,
+                                                         brush=(0, 255, 0, 80))
+        self.ImageHistogramGraphBlue = pg.PlotCurveItem(x=x, y=b_histogram, fillLevel=2, width=1.0,
+                                                        brush=(0, 0, 255, 80))
+        self.ImageHistogramGraphLuma = pg.PlotCurveItem(x=x, y=luma_histogram, fillLevel=2, width=1.0,
+                                                        brush=(255, 255, 255, 80))
         self.ImageHistogramPlot.addItem(self.ImageHistogramGraphRed)
         self.ImageHistogramPlot.addItem(self.ImageHistogramGraphGreen)
         self.ImageHistogramPlot.addItem(self.ImageHistogramGraphBlue)
@@ -100,7 +109,7 @@ class Gui(QtWidgets.QMainWindow):
         self.RedFactor = 100
         self.GreenFactor = 100
         self.BlueFactor = 100
-        self.Temperature = 6000 # Kelvin, maps to (255,255,255), direct sunlight
+        self.Temperature = 6000  # Kelvin, maps to (255,255,255), direct sunlight
         self.Color = 100
         self.Brightness = 100
         self.Contrast = 100
@@ -233,6 +242,136 @@ class Gui(QtWidgets.QMainWindow):
 
         ##############################################################################################
         ##############################################################################################
+        # Rotate Left Tool
+        ##############################################################################################
+        ##############################################################################################
+
+        self.RotateLeftToolButton = QToolButton(self)
+        self.RotateLeftToolButton.setText("&Rotate Left")
+        self.setIconPixmapWithColor(self.RotateLeftToolButton, "icons/rotate_left.svg")
+        self.RotateLeftToolButton.setToolTip("Rotate Left")
+        self.RotateLeftToolButton.setCheckable(True)
+        self.RotateLeftToolButton.toggled.connect(self.OnRotateLeftToolButton)
+
+        ##############################################################################################
+        ##############################################################################################
+        # Rotate Right Tool
+        ##############################################################################################
+        ##############################################################################################
+
+        self.RotateRightToolButton = QToolButton(self)
+        self.RotateRightToolButton.setText("&Rotate Right")
+        self.setIconPixmapWithColor(self.RotateRightToolButton, "icons/rotate_right.svg")
+        self.RotateRightToolButton.setToolTip("Rotate Right")
+        self.RotateRightToolButton.setCheckable(True)
+        self.RotateRightToolButton.toggled.connect(self.OnRotateRightToolButton)
+
+        ##############################################################################################
+        ##############################################################################################
+        # Horizontal Stack Tool
+        ##############################################################################################
+        ##############################################################################################
+
+        self.HStackToolButton = QToolButton(self)
+        self.HStackToolButton.setText("&Horizontal Stack")
+        self.setIconPixmapWithColor(self.HStackToolButton, "icons/hstack.svg")
+        self.HStackToolButton.setToolTip("Horizontal Stack")
+        self.HStackToolButton.setCheckable(True)
+        self.HStackToolButton.toggled.connect(self.OnHStackToolButton)
+
+        ##############################################################################################
+        ##############################################################################################
+        # Vertical Stack Tool
+        ##############################################################################################
+        ##############################################################################################
+
+        self.VStackToolButton = QToolButton(self)
+        self.VStackToolButton.setText("&Vertical Stack")
+        self.setIconPixmapWithColor(self.VStackToolButton, "icons/vstack.svg")
+        self.VStackToolButton.setToolTip("Vertical Stack")
+        self.VStackToolButton.setCheckable(True)
+        self.VStackToolButton.toggled.connect(self.OnVStackToolButton)
+
+        ##############################################################################################
+        ##############################################################################################
+        # Horizontal Panorama Tool
+        ##############################################################################################
+        ##############################################################################################
+
+        self.LandscapePanoramaToolButton = QToolButton(self)
+        self.LandscapePanoramaToolButton.setText("&Landscape Panorama")
+        self.setIconPixmapWithColor(self.LandscapePanoramaToolButton, "icons/panorama.svg")
+        self.LandscapePanoramaToolButton.setToolTip("Landscape Panorama")
+        self.LandscapePanoramaToolButton.setCheckable(True)
+        self.LandscapePanoramaToolButton.toggled.connect(self.OnLandscapePanoramaToolButton)
+
+        ##############################################################################################
+        ##############################################################################################
+        # Flip Left Right Tool
+        ##############################################################################################
+        ##############################################################################################
+
+        self.FlipLeftRightToolButton = QToolButton(self)
+        self.FlipLeftRightToolButton.setText("&Flip Left-Right")
+        self.setIconPixmapWithColor(self.FlipLeftRightToolButton, "icons/flip_left_right.svg")
+        self.FlipLeftRightToolButton.setToolTip("Flip Left-Right")
+        self.FlipLeftRightToolButton.setCheckable(True)
+        self.FlipLeftRightToolButton.toggled.connect(self.OnFlipLeftRightToolButton)
+
+        ##############################################################################################
+        ##############################################################################################
+        # Flip Top Bottom Tool
+        ##############################################################################################
+        ##############################################################################################
+
+        self.FlipTopBottomToolButton = QToolButton(self)
+        self.FlipTopBottomToolButton.setText("&Flip Top-Bottom")
+        self.setIconPixmapWithColor(self.FlipTopBottomToolButton, "icons/flip_top_bottom.svg")
+        self.FlipTopBottomToolButton.setToolTip("Flip Top-Bottom")
+        self.FlipTopBottomToolButton.setCheckable(True)
+        self.FlipTopBottomToolButton.toggled.connect(self.OnFlipTopBottomToolButton)
+
+        ##############################################################################################
+        ##############################################################################################
+        # Spot Removal Tool
+        ##############################################################################################
+        ##############################################################################################
+
+        self.SpotRemovalToolButton = QToolButton(self)
+        self.SpotRemovalToolButton.setText("&Spot Removal")
+        self.SpotRemovalToolButton.setToolTip("Spot Removal")
+        self.setIconPixmapWithColor(self.SpotRemovalToolButton, "icons/spot_removal.svg")
+        self.SpotRemovalToolButton.setCheckable(True)
+        self.SpotRemovalToolButton.toggled.connect(self.OnSpotRemovalToolButton)
+
+        ##############################################################################################
+        ##############################################################################################
+        # Blur Tool
+        ##############################################################################################
+        ##############################################################################################
+
+        self.BlurToolButton = QToolButton(self)
+        self.BlurToolButton.setText("&Blur")
+        self.BlurToolButton.setToolTip("Blur")
+        self.setIconPixmapWithColor(self.BlurToolButton, "icons/blur.svg")
+        self.BlurToolButton.setCheckable(True)
+        self.BlurToolButton.toggled.connect(self.OnBlurToolButton)
+
+        ##############################################################################################
+        ##############################################################################################
+        # Portrait Mode Background Blur Tool
+        ##############################################################################################
+        ##############################################################################################
+
+        self.PortraitModeBackgroundBlurToolButton = QToolButton(self)
+        self.PortraitModeBackgroundBlurToolButton.setText("&Portrait Mode")
+        self.PortraitModeBackgroundBlurToolButton.setToolTip("Portrait Mode")
+        self.setIconPixmapWithColor(self.PortraitModeBackgroundBlurToolButton, "icons/portrait_mode.svg")
+        self.PortraitModeBackgroundBlurToolButton.setCheckable(True)
+        self.PortraitModeBackgroundBlurToolButton.toggled.connect(self.OnPortraitModeBackgroundBlurToolButton)
+
+        ##############################################################################################
+        ##############################################################################################
         # Super-Resolution Tool
         ##############################################################################################
         ##############################################################################################
@@ -243,7 +382,6 @@ class Gui(QtWidgets.QMainWindow):
         self.setIconPixmapWithColor(self.SuperResolutionToolButton, "icons/super_resolution.svg")
         self.SuperResolutionToolButton.setCheckable(True)
         self.SuperResolutionToolButton.toggled.connect(self.OnSuperResolutionToolButton)
-
 
         ##############################################################################################
         ##############################################################################################
@@ -365,9 +503,17 @@ class Gui(QtWidgets.QMainWindow):
                 "tool": "CropToolButton",
                 "var": '_isCropping'
             },
+            "spot_removal": {
+                "tool": "SpotRemovalToolButton",
+                "var": '_isRemovingSpots'
+            },
             "eraser": {
                 "tool": "EraserToolButton",
                 "var": '_isErasing'
+            },
+            "blur": {
+                "tool": "BlurToolButton",
+                "var": '_isBlurring'
             },
             "instagram_filters": {
                 "tool": "InstagramFiltersToolButton",
@@ -385,10 +531,17 @@ class Gui(QtWidgets.QMainWindow):
             self.CursorToolButton, self.ColorPickerToolButton, self.PaintToolButton, self.EraserToolButton,
             self.FillToolButton, self.RectSelectToolButton, self.PathSelectToolButton, self.CropToolButton,
             self.SlidersToolButton, self.HistogramToolButton, self.CurveEditorToolButton,
+            self.SpotRemovalToolButton, self.BlurToolButton,
+
+            self.RotateLeftToolButton, self.RotateRightToolButton,
+            self.HStackToolButton, self.VStackToolButton,
+            self.FlipLeftRightToolButton, self.FlipTopBottomToolButton,
+            self.LandscapePanoramaToolButton,
 
             self.InstagramFiltersToolButton,
             self.WhiteBalanceToolButton,
-            self.SuperResolutionToolButton,
+            self.PortraitModeBackgroundBlurToolButton,
+           self.SuperResolutionToolButton, 
         ]
 
         for button in self.ToolButtons:
@@ -469,27 +622,27 @@ class Gui(QtWidgets.QMainWindow):
         #   Qt.AspectRatioMode.KeepAspectRatio: Fit in viewport using aspect ratio.
         #   Qt.AspectRatioMode.KeepAspectRatioByExpanding: Fill viewport using aspect ratio.
         self.image_viewer.aspectRatioMode = Qt.AspectRatioMode.KeepAspectRatio
-    
+
         # Set the viewer's scroll bar behaviour.
         #   Qt.ScrollBarPolicy.ScrollBarAlwaysOff: Never show scroll bar.
         #   Qt.ScrollBarPolicy.ScrollBarAlwaysOn: Always show scroll bar.
         #   Qt.ScrollBarPolicy.ScrollBarAsNeeded: Show scroll bar only when zoomed.
         self.image_viewer.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.image_viewer.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-    
+
         # Allow zooming by draggin a zoom box with the left mouse button.
         # !!! This will still emit a leftMouseButtonReleased signal if no dragging occured,
         #     so you can still handle left mouse button clicks in this way.
         #     If you absolutely need to handle a left click upon press, then
         #     either disable region zooming or set it to the middle or right button.
         self.image_viewer.regionZoomButton = Qt.MouseButton.LeftButton  # set to None to disable
-    
+
         # Pop end of zoom stack (double click clears zoom stack).
         self.image_viewer.zoomOutButton = Qt.MouseButton.RightButton  # set to None to disable
-    
+
         # Mouse wheel zooming.
         self.image_viewer.wheelZoomFactor = 1.25  # Set to None or 1 to disable
-    
+
         # Allow panning with the middle mouse button.
         self.image_viewer.panButton = Qt.MouseButton.MiddleButton  # set to None to disable
 
@@ -509,11 +662,11 @@ class Gui(QtWidgets.QMainWindow):
         self.Sharpness = 100
         self.GaussianBlurRadius = 0
 
-        self.RedColorSlider.setValue(self.RedFactor)        
-        self.GreenColorSlider.setValue(self.GreenFactor)        
-        self.BlueColorSlider.setValue(self.BlueFactor) 
+        self.RedColorSlider.setValue(self.RedFactor)
+        self.GreenColorSlider.setValue(self.GreenFactor)
+        self.BlueColorSlider.setValue(self.BlueFactor)
         self.TemperatureSlider.setValue(self.Temperature)
-        self.ColorSlider.setValue(self.Color)        
+        self.ColorSlider.setValue(self.Color)
         self.BrightnessSlider.setValue(self.Brightness)
         self.ContrastSlider.setValue(self.Contrast)
         self.SharpnessSlider.setValue(self.Sharpness)
@@ -572,11 +725,11 @@ class Gui(QtWidgets.QMainWindow):
 
     def AddRedColorSlider(self, layout):
         self.RedColorSlider = QSlider(QtCore.Qt.Orientation.Horizontal)
-        self.RedColorSlider.setRange(0, 200) # 1 is original image, 0 is black image
+        self.RedColorSlider.setRange(0, 200)  # 1 is original image, 0 is black image
         layout.addRow("Red", self.RedColorSlider)
 
         # Default value of the Color slider
-        self.RedColorSlider.setValue(100) 
+        self.RedColorSlider.setValue(100)
 
         self.RedColorSlider.valueChanged.connect(self.OnRedColorChanged)
 
@@ -600,11 +753,11 @@ class Gui(QtWidgets.QMainWindow):
 
     def AddGreenColorSlider(self, layout):
         self.GreenColorSlider = QSlider(QtCore.Qt.Orientation.Horizontal)
-        self.GreenColorSlider.setRange(0, 200) # 1 is original image, 0 is black image
+        self.GreenColorSlider.setRange(0, 200)  # 1 is original image, 0 is black image
         layout.addRow("Green", self.GreenColorSlider)
 
         # Default value of the Color slider
-        self.GreenColorSlider.setValue(100) 
+        self.GreenColorSlider.setValue(100)
 
         self.GreenColorSlider.valueChanged.connect(self.OnGreenColorChanged)
 
@@ -628,11 +781,11 @@ class Gui(QtWidgets.QMainWindow):
 
     def AddBlueColorSlider(self, layout):
         self.BlueColorSlider = QSlider(QtCore.Qt.Orientation.Horizontal)
-        self.BlueColorSlider.setRange(0, 200) # 1 is original image, 0 is black image
+        self.BlueColorSlider.setRange(0, 200)  # 1 is original image, 0 is black image
         layout.addRow("Blue", self.BlueColorSlider)
 
         # Default value of the Color slider
-        self.BlueColorSlider.setValue(100) 
+        self.BlueColorSlider.setValue(100)
 
         self.BlueColorSlider.valueChanged.connect(self.OnBlueColorChanged)
 
@@ -656,11 +809,11 @@ class Gui(QtWidgets.QMainWindow):
 
     def AddColorSlider(self, layout):
         self.ColorSlider = QSlider(QtCore.Qt.Orientation.Horizontal)
-        self.ColorSlider.setRange(0, 200) # 1 is original image, 0 is black image
+        self.ColorSlider.setRange(0, 200)  # 1 is original image, 0 is black image
         layout.addRow("Saturation", self.ColorSlider)
 
         # Default value of the Color slider
-        self.ColorSlider.setValue(100) 
+        self.ColorSlider.setValue(100)
 
         self.ColorSlider.valueChanged.connect(self.OnColorChanged)
 
@@ -670,11 +823,11 @@ class Gui(QtWidgets.QMainWindow):
 
     def AddBrightnessSlider(self, layout):
         self.BrightnessSlider = QSlider(QtCore.Qt.Orientation.Horizontal)
-        self.BrightnessSlider.setRange(0, 200) # 1 is original image, 0 is black image
+        self.BrightnessSlider.setRange(0, 200)  # 1 is original image, 0 is black image
         layout.addRow("Brightness", self.BrightnessSlider)
 
         # Default value of the brightness slider
-        self.BrightnessSlider.setValue(100) 
+        self.BrightnessSlider.setValue(100)
 
         self.BrightnessSlider.valueChanged.connect(self.OnBrightnessChanged)
 
@@ -684,11 +837,11 @@ class Gui(QtWidgets.QMainWindow):
 
     def AddContrastSlider(self, layout):
         self.ContrastSlider = QSlider(QtCore.Qt.Orientation.Horizontal)
-        self.ContrastSlider.setRange(0, 200) # 1 is original image, 0 is a solid grey image
+        self.ContrastSlider.setRange(0, 200)  # 1 is original image, 0 is a solid grey image
         layout.addRow("Contrast", self.ContrastSlider)
 
         # Default value of the brightness slider
-        self.ContrastSlider.setValue(100) 
+        self.ContrastSlider.setValue(100)
 
         self.ContrastSlider.valueChanged.connect(self.OnContrastChanged)
 
@@ -698,11 +851,11 @@ class Gui(QtWidgets.QMainWindow):
 
     def AddSharpnessSlider(self, layout):
         self.SharpnessSlider = QSlider(QtCore.Qt.Orientation.Horizontal)
-        self.SharpnessSlider.setRange(0, 200) # 1 is original image, 0 is black image
+        self.SharpnessSlider.setRange(0, 200)  # 1 is original image, 0 is black image
         layout.addRow("Sharpness", self.SharpnessSlider)
 
         # Default value of the Sharpness slider
-        self.SharpnessSlider.setValue(100) 
+        self.SharpnessSlider.setValue(100)
 
         self.SharpnessSlider.valueChanged.connect(self.OnSharpnessChanged)
 
@@ -729,9 +882,9 @@ class Gui(QtWidgets.QMainWindow):
         b_histogram = b.histogram()
 
         # ITU-R 601-2 luma transform:
-        luma_histogram = [sum(x) for x in zip([item * float(299/1000) for item in r_histogram],
-                                              [item * float(587/1000) for item in g_histogram],
-                                              [item * float(114/1000) for item in b_histogram])]
+        luma_histogram = [sum(x) for x in zip([item * float(299 / 1000) for item in r_histogram],
+                                              [item * float(587 / 1000) for item in g_histogram],
+                                              [item * float(114 / 1000) for item in b_histogram])]
 
         # Update histogram plot
         self.ImageHistogramGraphRed.setData(y=r_histogram)
@@ -742,7 +895,7 @@ class Gui(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def onUpdateImageCompleted(self):
         if self.sliderChangedPixmap:
-            self.image_viewer.setImage(self.sliderChangedPixmap, False, self.sliderExplanationOfChange, 
+            self.image_viewer.setImage(self.sliderChangedPixmap, False, self.sliderExplanationOfChange,
                                        self.sliderTypeOfChange, self.sliderValueOfChange, self.sliderObjectOfChange)
             self.UpdateHistogramPlot()
 
@@ -778,9 +931,10 @@ class Gui(QtWidgets.QMainWindow):
                 img = Image.fromarray(np.dstack((b, g, r)))
 
                 def FindClosest(lst, K):
-                    return lst[min(range(len(lst)), key = lambda i: abs(lst[i]-K))]
+                    return lst[min(range(len(lst)), key=lambda i: abs(lst[i] - K))]
 
-                img = AdjustTemperature.convert_temp(img, FindClosest(list(AdjustTemperature.kelvin_table.keys()), self.Temperature))
+                img = AdjustTemperature.convert_temp(img, FindClosest(list(AdjustTemperature.kelvin_table.keys()),
+                                                                      self.Temperature))
                 img = np.asarray(img)
                 img = np.dstack((img, a))
                 img = Image.fromarray(img)
@@ -833,6 +987,7 @@ class Gui(QtWidgets.QMainWindow):
     def OnColorPickerToolButton(self, checked):
         if checked:
             self.InitTool()
+
             class ColorPickerWidget(QtWidgets.QWidget):
                 def __init__(self, parent, mainWindow):
                     QtWidgets.QWidget.__init__(self, parent)
@@ -858,7 +1013,7 @@ class Gui(QtWidgets.QMainWindow):
             # Create a local event loop for this widget
             loop = QtCore.QEventLoop()
             self.ColorPickerContent.destroyed.connect(loop.quit)
-            loop.exec() # wait
+            loop.exec()  # wait
         else:
             self.DisableTool("color_picker")
             self.ColorPickerContent.hide()
@@ -866,6 +1021,7 @@ class Gui(QtWidgets.QMainWindow):
     def OnHistogramToolButton(self, checked):
         if checked:
             self.InitTool()
+
             class HistogrmaWidget(QtWidgets.QWidget):
                 def __init__(self, parent, mainWindow):
                     QtWidgets.QWidget.__init__(self, parent)
@@ -878,6 +1034,7 @@ class Gui(QtWidgets.QMainWindow):
                     event.accept()
                     self.closed = True
                     self.mainWindow.DisableTool("histogram")
+
             if not self.HistogramContent:
                 self.HistogramContent = HistogrmaWidget(None, self)
                 self.HistogramLayout = QtWidgets.QVBoxLayout(self.HistogramContent)
@@ -888,16 +1045,17 @@ class Gui(QtWidgets.QMainWindow):
             # Create a local event loop for this widget
             loop = QtCore.QEventLoop()
             self.HistogramContent.destroyed.connect(loop.quit)
-            loop.exec() # wait
+            loop.exec()  # wait
         else:
             self.DisableTool("histogram")
             self.HistogramContent.hide()
-            #del self.HistogramContent
-            #del self.HistogramLayout
+            # del self.HistogramContent
+            # del self.HistogramLayout
 
     def OnPaintToolButton(self, checked):
         if checked:
             self.InitTool()
+
             class ColorPickerWidget(QtWidgets.QWidget):
                 def __init__(self, parent, mainWindow):
                     QtWidgets.QWidget.__init__(self, parent)
@@ -923,7 +1081,7 @@ class Gui(QtWidgets.QMainWindow):
             # Create a local event loop for this widget
             loop = QtCore.QEventLoop()
             self.PaintContent.destroyed.connect(loop.quit)
-            loop.exec() # wait
+            loop.exec()  # wait
         else:
             self.DisableTool("paint")
             self.PaintContent.hide()
@@ -931,6 +1089,7 @@ class Gui(QtWidgets.QMainWindow):
     def OnFillToolButton(self, checked):
         if checked:
             self.InitTool()
+
             class ColorPickerWidget(QtWidgets.QWidget):
                 def __init__(self, parent, mainWindow):
                     QtWidgets.QWidget.__init__(self, parent)
@@ -956,7 +1115,7 @@ class Gui(QtWidgets.QMainWindow):
             # Create a local event loop for this widget
             loop = QtCore.QEventLoop()
             self.FillContent.destroyed.connect(loop.quit)
-            loop.exec() # wait
+            loop.exec()  # wait
         else:
             self.DisableTool("fill")
             self.FillContent.hide()
@@ -965,6 +1124,235 @@ class Gui(QtWidgets.QMainWindow):
         if checked:
             self.InitTool()
             self.image_viewer._isCropping = True
+
+    def OnRotateLeftToolButton(self, checked):
+        if checked:
+            self.InitTool()
+            pixmap = self.getCurrentLayerLatestPixmap()
+            pil = self.QPixmapToImage(pixmap)
+            pil = pil.rotate(90, expand=True)
+            updatedPixmap = self.ImageToQPixmap(pil)
+            self.image_viewer.setImage(updatedPixmap, True, "Rotate Left", "Tool", None, None)
+        self.RotateLeftToolButton.setChecked(False)
+
+    def OnRotateRightToolButton(self, checked):
+        if checked:
+            self.InitTool()
+            pixmap = self.getCurrentLayerLatestPixmap()
+            pil = self.QPixmapToImage(pixmap)
+            pil = pil.rotate(-90, expand=True)
+            updatedPixmap = self.ImageToQPixmap(pil)
+            self.image_viewer.setImage(updatedPixmap, True, "Rotate Right", "Tool", None, None)
+        self.RotateRightToolButton.setChecked(False)
+
+    def OnHStackToolButton(self, checked):
+        if checked:
+            self.InitTool()
+            if self.image_viewer._current_filename:
+
+                pixmap = self.getCurrentLayerLatestPixmap()
+                first = self.QPixmapToImage(pixmap)
+
+                if pixmap:
+
+                    # Open second image
+                    filepath, _ = QFileDialog.getOpenFileName(self, "Open Image")
+                    if len(filepath) and os.path.isfile(filepath):
+                        second = Image.open(filepath)
+
+                        if first.width != second.width or first.height != second.height:
+                            # The two images are of different size
+
+                            # If the two images are not the exact same size
+                            # Ask the user if they want to resize the first or second or leave as is
+                            msgBox = QtWidgets.QMessageBox()
+                            msgBox.setText('First Image is ' + str(first.width) + "x" + str(first.height) + '\n'
+                                                                                                            'Second Image is ' + str(
+                                second.width) + "x" + str(second.height))
+
+                            resizeFirst = QtWidgets.QPushButton('Resize First')
+                            resizeSecond = QtWidgets.QPushButton('Resize Second')
+                            stackAsIs = QtWidgets.QPushButton("Stack As Is")
+                            cancel = QtWidgets.QPushButton('Cancel')
+
+                            for button in [resizeFirst, resizeSecond, stackAsIs, cancel]:
+                                button.setStyleSheet('''
+                                    border: 1px solid;
+                                    background-color: rgb(44, 44, 44);
+                                    height: 30px;
+                                    width: 100px;
+                                ''')
+
+                            msgBox.addButton(resizeFirst, QtWidgets.QMessageBox.ButtonRole.YesRole)
+                            msgBox.addButton(resizeSecond, QtWidgets.QMessageBox.ButtonRole.NoRole)
+                            msgBox.addButton(stackAsIs, QtWidgets.QMessageBox.ButtonRole.DestructiveRole)
+                            msgBox.addButton(cancel, QtWidgets.QMessageBox.ButtonRole.RejectRole)
+                            msgBox.setStyleSheet('''
+                                background-color: rgb(22, 22, 22);
+                            ''')
+                            ret = msgBox.exec()
+
+                            from PIL import ImageOps
+
+                            if ret == 3:
+                                # Cancel operation
+                                self.HStackToolButton.setChecked(False)
+                                return
+                            elif ret == 0:
+                                # Resize first to match the size of second
+                                first = ImageOps.contain(first, (second.width, second.height))
+                            elif ret == 1:
+                                # Resize second to match the size of first
+                                second = ImageOps.contain(second, (first.width, first.height))
+                            elif ret == 2:
+                                # Do nothing
+                                pass
+
+                        # Hstack the two
+                        dst = Image.new('RGBA', (first.width + second.width, first.height))
+                        dst.paste(first, (0, 0))
+                        dst.paste(second, (first.width, 0))
+
+                        # Save result
+                        updatedPixmap = self.ImageToQPixmap(dst)
+                        self.image_viewer.setImage(updatedPixmap, True, "HStack", "Tool", None, None)
+
+        self.HStackToolButton.setChecked(False)
+
+    def OnVStackToolButton(self, checked):
+        if checked:
+            self.InitTool()
+            if self.image_viewer._current_filename:
+
+                pixmap = self.getCurrentLayerLatestPixmap()
+                first = self.QPixmapToImage(pixmap)
+
+                if pixmap:
+
+                    # Open second image
+                    filepath, _ = QFileDialog.getOpenFileName(self, "Open Image")
+                    if len(filepath) and os.path.isfile(filepath):
+                        second = Image.open(filepath)
+
+                        if first.width != second.width or first.height != second.height:
+                            # The two images are of different size
+
+                            # If the two images are not the exact same size
+                            # Ask the user if they want to resize the first or second or leave as is
+                            msgBox = QtWidgets.QMessageBox()
+                            msgBox.setText('First Image is ' + str(first.width) + "x" + str(first.height) + '\n'
+                                                                                                            'Second Image is ' + str(
+                                second.width) + "x" + str(second.height))
+
+                            resizeFirst = QtWidgets.QPushButton('Resize First')
+                            resizeSecond = QtWidgets.QPushButton('Resize Second')
+                            stackAsIs = QtWidgets.QPushButton("Stack As Is")
+                            cancel = QtWidgets.QPushButton('Cancel')
+
+                            for button in [resizeFirst, resizeSecond, stackAsIs, cancel]:
+                                button.setStyleSheet('''
+                                    border: 1px solid;
+                                    background-color: rgb(44, 44, 44);
+                                    height: 30px;
+                                    width: 100px;
+                                ''')
+
+                            msgBox.addButton(resizeFirst, QtWidgets.QMessageBox.ButtonRole.YesRole)
+                            msgBox.addButton(resizeSecond, QtWidgets.QMessageBox.ButtonRole.NoRole)
+                            msgBox.addButton(stackAsIs, QtWidgets.QMessageBox.ButtonRole.DestructiveRole)
+                            msgBox.addButton(cancel, QtWidgets.QMessageBox.ButtonRole.RejectRole)
+                            msgBox.setStyleSheet('''
+                                background-color: rgb(22, 22, 22);
+                            ''')
+                            ret = msgBox.exec()
+
+                            from PIL import ImageOps
+
+                            if ret == 3:
+                                # Cancel operation
+                                self.HStackToolButton.setChecked(False)
+                                return
+                            elif ret == 0:
+                                # Resize first to match the size of second
+                                first = ImageOps.contain(first, (second.width, second.height))
+                            elif ret == 1:
+                                # Resize second to match the size of first
+                                second = ImageOps.contain(second, (first.width, first.height))
+                            elif ret == 2:
+                                # Do nothing
+                                pass
+
+                        # Vstack the two
+                        dst = Image.new('RGBA', (first.width, first.height + second.height))
+                        dst.paste(first, (0, 0))
+                        dst.paste(second, (0, first.height))
+
+                        # Save result
+                        updatedPixmap = self.ImageToQPixmap(dst)
+                        self.image_viewer.setImage(updatedPixmap, True, "VStack", "Tool", None, None)
+
+        self.VStackToolButton.setChecked(False)
+
+    def OnLandscapePanoramaToolButton(self, checked):
+        if checked:
+            self.InitTool()
+            if self.image_viewer._current_filename:
+
+                pixmap = self.getCurrentLayerLatestPixmap()
+                first = self.QPixmapToImage(pixmap)
+
+                if pixmap:
+
+                    # Open second image
+                    filepath, _ = QFileDialog.getOpenFileName(self, "Open Image")
+                    if len(filepath) and os.path.isfile(filepath):
+                        import cv2
+                        second = cv2.imread(filepath)
+
+                        # Stitch the pair of images
+                        import ImageStitching
+                        import numpy as np
+                        import cv2
+                        first = np.asarray(first)
+                        print(first.shape, second.shape)
+                        b1, g1, r1, _ = cv2.split(np.asarray(first))
+                        dst = None
+                        try:
+                            dst = ImageStitching.stitch_image_pair(np.dstack((r1, g1, b1)), second, stitch_direc=1)
+                        except ImageStitching.NotEnoughMatchPointsError as e:
+                            # show dialog with error
+                            pass
+
+                        if dst is not None:
+                            dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
+
+                            print(dst.shape)
+                            dst = Image.fromarray(dst).convert("RGBA")
+
+                            # Save result
+                            updatedPixmap = self.ImageToQPixmap(dst)
+                            self.image_viewer.setImage(updatedPixmap, True, "Landscape Panorama", "Tool", None, None)
+        self.LandscapePanoramaToolButton.setChecked(False)
+
+    def OnFlipLeftRightToolButton(self, checked):
+        if checked:
+            self.InitTool()
+            pixmap = self.getCurrentLayerLatestPixmap()
+            pil = self.QPixmapToImage(pixmap)
+            pil = pil.transpose(Image.FLIP_LEFT_RIGHT)
+            updatedPixmap = self.ImageToQPixmap(pil)
+            self.image_viewer.setImage(updatedPixmap, True, "Flip Left-Right", "Tool", None, None)
+        self.FlipLeftRightToolButton.setChecked(False)
+
+    def OnFlipTopBottomToolButton(self, checked):
+        if checked:
+            self.InitTool()
+            pixmap = self.getCurrentLayerLatestPixmap()
+            pil = self.QPixmapToImage(pixmap)
+            pil = pil.transpose(Image.FLIP_TOP_BOTTOM)
+            updatedPixmap = self.ImageToQPixmap(pil)
+            self.image_viewer.setImage(updatedPixmap, True, "Flip Top-Bottom", "Tool", None, None)
+        self.FlipTopBottomToolButton.setChecked(False)
 
     def OnRectSelectToolButton(self, checked):
         self.InitTool()
@@ -977,6 +1365,43 @@ class Gui(QtWidgets.QMainWindow):
     def OnSpotRemovalToolButton(self, checked):
         self.InitTool()
         self.EnableTool("spot_removal") if checked else self.DisableTool("spot_removal")
+
+
+    @QtCore.pyqtSlot()
+    def onPortraitModeBackgroundBlurCompleted(self, tool):
+        backgroundRemoved = None
+        if tool.backgroundRemoved:
+            backgroundRemoved = tool.backgroundRemoved
+            backgroundRemoved = self.ImageToQPixmap(backgroundRemoved)
+
+        output = tool.output
+        if output is not None and backgroundRemoved is not None:
+            # Depth prediction output
+            # Blurred based on predicted depth
+            updatedPixmap = self.ImageToQPixmap(output)
+
+            # Draw foreground on top of the blurred background
+            painter = QtGui.QPainter(updatedPixmap)
+            painter.drawPixmap(QtCore.QPoint(), backgroundRemoved)
+            painter.end()
+
+            self.image_viewer.setImage(updatedPixmap, True, "Portrait Mode Background Blur")
+
+        self.PortraitModeBackgroundBlurToolButton.setChecked(False)
+        del tool
+        tool = None
+
+    def OnPortraitModeBackgroundBlurToolButton(self, checked):
+        if checked:
+            self.InitTool()
+            currentPixmap = self.getCurrentLayerLatestPixmap()
+            image = self.QPixmapToImage(currentPixmap)
+
+            from QToolPortraitMode import QToolPortraitMode
+
+            # Run human segmentation with alpha matting
+            widget = QToolPortraitMode(None, image, self.onPortraitModeBackgroundBlurCompleted)
+            widget.show()
 
     @QtCore.pyqtSlot()
     def onSuperResolutionCompleted(self, tool):
@@ -1026,6 +1451,7 @@ class Gui(QtWidgets.QMainWindow):
     def OnSlidersToolButton(self, checked):
         if checked:
             self.InitTool()
+
             class SlidersScrollWidget(QtWidgets.QScrollArea):
                 def __init__(self, parent, mainWindow):
                     QtWidgets.QScrollArea.__init__(self, parent)
@@ -1049,7 +1475,7 @@ class Gui(QtWidgets.QMainWindow):
             # Filter sliders
             filter_label = QLabel("Basic")
             self.slidersLayout.addWidget(filter_label)
-        
+
             # Enhance sliders
             self.AddRedColorSlider(self.slidersLayout)
             self.AddGreenColorSlider(self.slidersLayout)
@@ -1089,7 +1515,7 @@ class Gui(QtWidgets.QMainWindow):
             # Create a local event loop for this widget
             loop = QtCore.QEventLoop()
             self.slidersScroll.destroyed.connect(loop.quit)
-            loop.exec() # wait
+            loop.exec()  # wait
         else:
             self.slidersScroll.hide()
 
@@ -1105,7 +1531,7 @@ class Gui(QtWidgets.QMainWindow):
             # Create a local event loop for this widget
             loop = QtCore.QEventLoop()
             self.CurveWidget.destroyed.connect(loop.quit)
-            loop.exec() # wait
+            loop.exec()  # wait
         else:
             self.CurveWidget.hide()
 
@@ -1128,7 +1554,8 @@ class Gui(QtWidgets.QMainWindow):
                     event.accept()
                     self.closed = True
                     self.mainWindow.InstagramFiltersToolButton.setChecked(False)
-                    self.mainWindow.image_viewer.setImage(self.mainWindow.image_viewer.pixmap(), True, "Instagram Filters")
+                    self.mainWindow.image_viewer.setImage(self.mainWindow.image_viewer.pixmap(), True,
+                                                          "Instagram Filters")
 
             self.EnableTool("instagram_filters") if checked else self.DisableTool("instagram_filters")
             currentPixmap = self.getCurrentLayerLatestPixmap()
@@ -1148,7 +1575,7 @@ class Gui(QtWidgets.QMainWindow):
             loop = QtCore.QEventLoop()
             self.filtersDock.destroyed.connect(loop.quit)
             tool.destroyed.connect(loop.quit)
-            loop.exec() # wait
+            loop.exec()  # wait
         else:
             self.DisableTool("instagram_filters")
             self.filtersDock.hide()
@@ -1208,11 +1635,11 @@ class Gui(QtWidgets.QMainWindow):
         r_histogram = r.histogram()
         g_histogram = g.histogram()
         b_histogram = b.histogram()
-        
+
         # ITU-R 601-2 luma transform:
-        luma_histogram = [sum(x) for x in zip([item * float(299/1000) for item in r_histogram],
-                                              [item * float(587/1000) for item in g_histogram],
-                                              [item * float(114/1000) for item in b_histogram])]
+        luma_histogram = [sum(x) for x in zip([item * float(299 / 1000) for item in r_histogram],
+                                              [item * float(587 / 1000) for item in g_histogram],
+                                              [item * float(114 / 1000) for item in b_histogram])]
 
         # Create histogram plot
         x = list(range(len(r_histogram)))
@@ -1220,10 +1647,14 @@ class Gui(QtWidgets.QMainWindow):
         self.ImageHistogramPlot.removeItem(self.ImageHistogramGraphGreen)
         self.ImageHistogramPlot.removeItem(self.ImageHistogramGraphBlue)
         self.ImageHistogramPlot.removeItem(self.ImageHistogramGraphLuma)
-        self.ImageHistogramGraphRed = pg.PlotCurveItem(x = x, y = r_histogram, fillLevel=2, width = 1.0, brush=(255,0,0,80))
-        self.ImageHistogramGraphGreen = pg.PlotCurveItem(x = x, y = g_histogram, fillLevel=2, width = 1.0, brush=(0,255,0,80))
-        self.ImageHistogramGraphBlue = pg.PlotCurveItem(x = x, y = b_histogram, fillLevel=2, width = 1.0, brush=(0,0,255,80))
-        self.ImageHistogramGraphLuma = pg.PlotCurveItem(x = x, y = luma_histogram, fillLevel=2, width = 1.0, brush=(255,255,255,80))
+        self.ImageHistogramGraphRed = pg.PlotCurveItem(x=x, y=r_histogram, fillLevel=2, width=1.0,
+                                                       brush=(255, 0, 0, 80))
+        self.ImageHistogramGraphGreen = pg.PlotCurveItem(x=x, y=g_histogram, fillLevel=2, width=1.0,
+                                                         brush=(0, 255, 0, 80))
+        self.ImageHistogramGraphBlue = pg.PlotCurveItem(x=x, y=b_histogram, fillLevel=2, width=1.0,
+                                                        brush=(0, 0, 255, 80))
+        self.ImageHistogramGraphLuma = pg.PlotCurveItem(x=x, y=luma_histogram, fillLevel=2, width=1.0,
+                                                        brush=(255, 255, 255, 80))
         self.ImageHistogramPlot.addItem(self.ImageHistogramGraphRed)
         self.ImageHistogramPlot.addItem(self.ImageHistogramGraphGreen)
         self.ImageHistogramPlot.addItem(self.ImageHistogramGraphBlue)
@@ -1273,7 +1704,7 @@ class Gui(QtWidgets.QMainWindow):
             self.OnSaveAs()
         else:
             self.image_viewer.save()
-   
+
     def OnSaveAs(self):
         name, ext = os.path.splitext(self.image_viewer._current_filename)
         dialog = QFileDialog()
@@ -1302,6 +1733,7 @@ class Gui(QtWidgets.QMainWindow):
             self.createLayersDock()
             for button in self.ToolButtons:
                 button.setEnabled(True)
+
 
 def main():
     app = QApplication(sys.argv)
@@ -1349,6 +1781,7 @@ def main():
     ''');
     app.setWindowIcon(QtGui.QIcon("icons/logo.png"))
     sys.exit(app.exec())
+
 
 if __name__ == '__main__':
     # https://stackoverflow.com/questions/71458968/pyqt6-how-to-set-allocation-limit-in-qimagereader

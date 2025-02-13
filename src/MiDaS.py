@@ -15,10 +15,15 @@ class BaseModel(torch.nn.Module):
 
         self.load_state_dict(parameters)
 
+import torch
+import torch.nn as nn
 
+import torch
 import torch.nn as nn
 import timm
 import types
+import math
+import torch.nn.functional as F
 
 
 class Slice(nn.Module):

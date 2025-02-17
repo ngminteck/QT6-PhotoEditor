@@ -292,18 +292,6 @@ class Gui(QtWidgets.QMainWindow):
         self.VStackToolButton.setCheckable(True)
         self.VStackToolButton.toggled.connect(self.OnVStackToolButton)
 
-        ##############################################################################################
-        ##############################################################################################
-        # Horizontal Panorama Tool
-        ##############################################################################################
-        ##############################################################################################
-
-        self.LandscapePanoramaToolButton = QToolButton(self)
-        self.LandscapePanoramaToolButton.setText("&Landscape Panorama")
-        self.setIconPixmapWithColor(self.LandscapePanoramaToolButton, "icons/panorama.svg")
-        self.LandscapePanoramaToolButton.setToolTip("Landscape Panorama")
-        self.LandscapePanoramaToolButton.setCheckable(True)
-        self.LandscapePanoramaToolButton.toggled.connect(self.OnLandscapePanoramaToolButton)
 
         ##############################################################################################
         ##############################################################################################
@@ -356,19 +344,6 @@ class Gui(QtWidgets.QMainWindow):
         self.setIconPixmapWithColor(self.BlurToolButton, "icons/blur.svg")
         self.BlurToolButton.setCheckable(True)
         self.BlurToolButton.toggled.connect(self.OnBlurToolButton)
-
-        ##############################################################################################
-        ##############################################################################################
-        # Portrait Mode Background Blur Tool
-        ##############################################################################################
-        ##############################################################################################
-
-        self.PortraitModeBackgroundBlurToolButton = QToolButton(self)
-        self.PortraitModeBackgroundBlurToolButton.setText("&Portrait Mode")
-        self.PortraitModeBackgroundBlurToolButton.setToolTip("Portrait Mode")
-        self.setIconPixmapWithColor(self.PortraitModeBackgroundBlurToolButton, "icons/portrait_mode.svg")
-        self.PortraitModeBackgroundBlurToolButton.setCheckable(True)
-        self.PortraitModeBackgroundBlurToolButton.toggled.connect(self.OnPortraitModeBackgroundBlurToolButton)
 
         ##############################################################################################
         ##############################################################################################
@@ -536,12 +511,11 @@ class Gui(QtWidgets.QMainWindow):
             self.RotateLeftToolButton, self.RotateRightToolButton,
             self.HStackToolButton, self.VStackToolButton,
             self.FlipLeftRightToolButton, self.FlipTopBottomToolButton,
-            self.LandscapePanoramaToolButton,
+
 
             self.InstagramFiltersToolButton,
             self.WhiteBalanceToolButton,
-            self.PortraitModeBackgroundBlurToolButton,
-           self.SuperResolutionToolButton, 
+           self.SuperResolutionToolButton,
         ]
 
         for button in self.ToolButtons:
@@ -1293,46 +1267,6 @@ class Gui(QtWidgets.QMainWindow):
 
         self.VStackToolButton.setChecked(False)
 
-    def OnLandscapePanoramaToolButton(self, checked):
-        if checked:
-            self.InitTool()
-            if self.image_viewer._current_filename:
-
-                pixmap = self.getCurrentLayerLatestPixmap()
-                first = self.QPixmapToImage(pixmap)
-
-                if pixmap:
-
-                    # Open second image
-                    filepath, _ = QFileDialog.getOpenFileName(self, "Open Image")
-                    if len(filepath) and os.path.isfile(filepath):
-                        import cv2
-                        second = cv2.imread(filepath)
-
-                        # Stitch the pair of images
-                        import ImageStitching
-                        import numpy as np
-                        import cv2
-                        first = np.asarray(first)
-                        print(first.shape, second.shape)
-                        b1, g1, r1, _ = cv2.split(np.asarray(first))
-                        dst = None
-                        try:
-                            dst = ImageStitching.stitch_image_pair(np.dstack((r1, g1, b1)), second, stitch_direc=1)
-                        except ImageStitching.NotEnoughMatchPointsError as e:
-                            # show dialog with error
-                            pass
-
-                        if dst is not None:
-                            dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
-
-                            print(dst.shape)
-                            dst = Image.fromarray(dst).convert("RGBA")
-
-                            # Save result
-                            updatedPixmap = self.ImageToQPixmap(dst)
-                            self.image_viewer.setImage(updatedPixmap, True, "Landscape Panorama", "Tool", None, None)
-        self.LandscapePanoramaToolButton.setChecked(False)
 
     def OnFlipLeftRightToolButton(self, checked):
         if checked:

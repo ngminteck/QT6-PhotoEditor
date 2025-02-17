@@ -1300,43 +1300,6 @@ class Gui(QtWidgets.QMainWindow):
         self.InitTool()
         self.EnableTool("spot_removal") if checked else self.DisableTool("spot_removal")
 
-
-    @QtCore.pyqtSlot()
-    def onPortraitModeBackgroundBlurCompleted(self, tool):
-        backgroundRemoved = None
-        if tool.backgroundRemoved:
-            backgroundRemoved = tool.backgroundRemoved
-            backgroundRemoved = self.ImageToQPixmap(backgroundRemoved)
-
-        output = tool.output
-        if output is not None and backgroundRemoved is not None:
-            # Depth prediction output
-            # Blurred based on predicted depth
-            updatedPixmap = self.ImageToQPixmap(output)
-
-            # Draw foreground on top of the blurred background
-            painter = QtGui.QPainter(updatedPixmap)
-            painter.drawPixmap(QtCore.QPoint(), backgroundRemoved)
-            painter.end()
-
-            self.image_viewer.setImage(updatedPixmap, True, "Portrait Mode Background Blur")
-
-        self.PortraitModeBackgroundBlurToolButton.setChecked(False)
-        del tool
-        tool = None
-
-    def OnPortraitModeBackgroundBlurToolButton(self, checked):
-        if checked:
-            self.InitTool()
-            currentPixmap = self.getCurrentLayerLatestPixmap()
-            image = self.QPixmapToImage(currentPixmap)
-
-            from QToolPortraitMode import QToolPortraitMode
-
-            # Run human segmentation with alpha matting
-            widget = QToolPortraitMode(None, image, self.onPortraitModeBackgroundBlurCompleted)
-            widget.show()
-
     @QtCore.pyqtSlot()
     def onSuperResolutionCompleted(self, tool):
         output = tool.output
